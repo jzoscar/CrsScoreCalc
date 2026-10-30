@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f0f4ff">
+    <title>加拿大 Express Entry 移民 CRS 积分计算器 (2026最新官方算法)</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="index.js" defer></script>
+  </head>
+  <body>
+    <div class="site-bg-decoration" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <div class="header-container">
+        <a class="brand" href="#top">
+          <span class="brand-badge">🇨🇦</span>
+          <div class="brand-text">
+            <span class="brand-title">MapleScore</span>
+            <span class="brand-subtitle">加拿大移民 CRS 积分精准计算器</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <span class="rule-version-badge">2026 IRCC 官方标准规则</span>
+          <button type="button" class="btn-preset-trigger" id="reset-all-btn" title="清空并重置所有输入">重置表单</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-layout" id="top">
+      <!-- Intro Hero Banner -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="badge-capsule">EXPRESS ENTRY · COMPREHENSIVE RANKING SYSTEM</div>
+          <h1>加拿大移民 CRS 积分测算器</h1>
+          <p class="hero-desc">
+            依据加拿大联邦移民局（IRCC）最新标准，一站式精准测算主申与配偶的核心人力资本、交叉迁移能力及额外加分。
+          </p>
+
+          <!-- Preset Quick Load Buttons -->
+          <div class="presets-bar">
+            <span class="preset-label">⚡ 快速预填案例：</span>
+            <div class="preset-chips">
+              <button type="button" class="chip-btn" data-preset="graduate">🇨🇦 留学生毕业 (1年经验)</button>
+              <button type="button" class="chip-btn" data-preset="masterWorker">🌍 海外硕士白领 (8777)</button>
+              <button type="button" class="chip-btn" data-preset="marriedCouple">👫 双职工家庭申请</button>
+              <button type="button" class="chip-btn" data-preset="frenchBonus">🇫🇷 法语双语加分</button>
+            </div>
+          </div>
+          <div id="preset-notice" class="preset-notice" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- Main Calculator Grid -->
+      <div class="calc-grid-wrapper">
+        <!-- Left: Step-by-Step Form Container -->
+        <div class="wizard-panel" id="wizard-container">
+          <!-- Step Progress Navigation Bar -->
+          <nav class="step-nav-bar" aria-label="测评步骤导航">
+            <div class="progress-track-bg">
+              <div class="progress-track-fill" id="progress-bar-fill"></div>
+            </div>
+            <div class="step-tabs-list">
+              <button type="button" class="step-tab active" data-step="1">
+                <span class="tab-num">1</span>
+                <span class="tab-text">婚姻配偶</span>
+              </button>
+              <button type="button" class="step-tab" data-step="2">
+                <span class="tab-num">2</span>
+                <span class="tab-text">年龄学历</span>
+              </button>
+              <button type="button" class="step-tab" data-step="3">
+                <span class="tab-num">3</span>
+                <span class="tab-text">语言能力</span>
+              </button>
+              <button type="button" class="step-tab" data-step="4">
+                <span class="tab-num">4</span>
+                <span class="tab-text">工作技能</span>
+              </button>
+              <button type="button" class="step-tab" data-step="5" style="display: none;">
+                <span class="tab-num">5</span>
+                <span class="tab-text">配偶加分</span>
+              </button>
+              <button type="button" class="step-tab" data-step="6">
+                <span class="tab-num">6</span>
+                <span class="tab-text">附加加分</span>
+              </button>
+            </div>
+          </nav>
+
+          <form id="crs-form" onsubmit="return false;">
+            <!-- ================= STEP 1: 婚姻与配偶状况 ================= -->
+            <section class="wizard-step active" data-step="1" aria-labelledby="step1-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 01 / 06</span>
+                <h2 id="step1-title">婚姻与配偶基本状况</h2>
+                <p class="step-desc">婚姻状态决定了计分体系中“单人模式（最高500分核心分）”或“双人协同模式（主申460分+配偶40分）”。</p>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="maritalStatus">
+                  您的婚姻状况 <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="maritalStatus" name="maritalStatus" required>
+                    <option value="single">单身 / 未婚 (Never Married / Single)</option>
+                    <option value="married">已婚 (Married)</option>
+                    <option value="common-law">同居伴侣关系 (Common-Law Partner)</option>
+                    <option value="divorced">离异 / 分居 (Divorced / Separated)</option>
+                    <option value="widowed">丧偶 (Widowed)</option>
+                    <option value="annulled">婚姻无效 (Annulled Marriage)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="spouse-subfields" class="subfield-box" style="display: none;">
+                <div class="form-group">
+                  <label class="input-label" for="spouseIsCitizenOrPR">
+                    您的配偶是加拿大公民或永久居民（PR）吗？ <span class="req">*</span>
+                  </label>
+                  <div class="select-container">
+                    <select id="spouseIsCitizenOrPR" name="spouseIsCitizenOrPR">
+                      <option value="no">否（非加拿大公民或PR）</option>
+                      <option value="yes">是（加拿大公民或已持PR身份）</option>
+                    </select>
+                  </div>
+                  <span class="field-hint">注：若配偶已是加拿大公民或PR，您将直接以单人最高分规则（满分1200分）计算。</span>
+                </div>
+
+                <div id="spouse-accompanying-field" class="form-group">
+                  <label class="input-label" for="spouseAccompanying">
+                    您的配偶是否随同您一同申请移民加拿大？ <span class="req">*</span>
+                  </label>
+                  <div class="select-container">
+                    <select id="spouseAccompanying" name="spouseAccompanying">
+                      <option value="yes">是，随行（将计算配偶学历/语言/经验加分）</option>
+                      <option value="no">否，不随行（按单人评分模式计算）</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= STEP 2: 年龄与学历 ================= -->
+            <section class="wizard-step" data-step="2" aria-labelledby="step2-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 02 / 06</span>
+                <h2 id="step2-title">主申请人年龄与最高学历</h2>
+                <p class="step-desc">核心人力资本（Section A）：20–29岁可获年龄满分（单身110分/有配偶100分）。</p>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="age">
+                  您的实际年龄 <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="age" name="age" required>
+                    <option value="under18">17 岁或以下 (0分)</option>
+                    <option value="18">18 岁 (单人99分 / 有配偶90分)</option>
+                    <option value="19">19 岁 (单人105分 / 有配偶95分)</option>
+                    <option value="25" selected>20 – 29 岁 (黄金年龄满分：单人110分 / 有配偶100分)</option>
+                    <option value="30">30 岁 (单人105分 / 有配偶95分)</option>
+                    <option value="31">31 岁 (单人99分 / 有配偶90分)</option>
+                    <option value="32">32 岁 (单人94分 / 有配偶85分)</option>
+                    <option value="33">33 岁 (单人88分 / 有配偶80分)</option>
+                    <option value="34">34 岁 (单人83分 / 有配偶75分)</option>
+                    <option value="35">35 岁 (单人77分 / 有配偶70分)</option>
+                    <option value="36">36 岁 (单人72分 / 有配偶65分)</option>
+                    <option value="37">37 岁 (单人66分 / 有配偶60分)</option>
+                    <option value="38">38 岁 (单人61分 / 有配偶55分)</option>
+                    <option value="39">39 岁 (单人55分 / 有配偶50分)</option>
+                    <option value="40">40 岁 (单人50分 / 有配偶45分)</option>
+                    <option value="41">41 岁 (单人39分 / 有配偶35分)</option>
+                    <option value="42">42 岁 (单人28分 / 有配偶25分)</option>
+                    <option value="43">43 岁 (单人17分 / 有配偶15分)</option>
+                    <option value="44">44 岁 (单人6分 / 有配偶5分)</option>
+                    <option value="45">45 岁及以上 (0分)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="education">
+                  您的最高学历（已完成并取得 ECA 学历认证） <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="education" name="education" required>
+                    <option value="bachelor" selected>本科（Bachelor's degree）或三年制大专学历 (单人120分 / 有配偶112分)</option>
+                    <option value="master">硕士学位（Master's degree）或专业执照学位 (单人135分 / 有配偶126分)</option>
+                    <option value="twoOrMore">双学历（两个或以上高等教育文凭，其中一个需3年以上） (单人128分 / 有配偶119分)</option>
+                    <option value="twoYear">两年制高等教育文凭 / 大专 (单人98分 / 有配偶91分)</option>
+                    <option value="oneYear">一年制高等教育文凭 / 证书 (单人90分 / 有配偶84分)</option>
+                    <option value="doctoral">博士学位（Doctoral / Ph.D.） (单人150分 / 有配偶140分)</option>
+                    <option value="secondary">高中毕业 (单人30分 / 有配偶28分)</option>
+                    <option value="none">高中以下学历 (0分)</option>
+                  </select>
+                </div>
+                <span class="field-hint">💡 海外学历需完成 WES 或 ICAS 等官方 ECA 认证后方可获得对应积分。</span>
+              </div>
+            </section>
+
+            <!-- ================= STEP 3: 官方语言能力 ================= -->
+            <section class="wizard-step" data-step="3" aria-labelledby="step3-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 03 / 06</span>
+                <h2 id="step3-title">官方语言能力（第一与第二语言）</h2>
+                <p class="step-desc">语言是 CRS 得分基石，达到 CLB 9（雅思听8说7读7写7）将激发技能交叉转移满分奖励！</p>
+              </div>
+
+              <!-- First Language Card -->
+              <div class="card-inner-box">
+                <div class="card-inner-header">
+                  <div class="title-with-badge">
+                    <span class="card-inner-badge">核心</span>
+                    <h3>第一官方语言 (First Official Language)</h3>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label" for="firstLanguageType">选择第一语言语种</label>
+                  <div class="select-container">
+                    <select id="firstLanguageType" name="firstLanguageType">
+                      <option value="english" selected>英语 (English - IELTS / CELPIP / PTE Core)</option>
+                      <option value="french">法语 (French - TEF Canada / TCF Canada)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Test Score Quick Converter -->
+                <div class="converter-box lang-test-calc" data-target-prefix="firstLang">
+                  <div class="converter-header">
+                    <span>🧮 快捷考试小分换算器（输入各科分数自动填入 CLB）：</span>
+                  </div>
+                  <div class="converter-row">
+                    <div class="conv-field">
+                      <span class="conv-label">考试类别</span>
+                      <select class="test-type-select conv-select">
+                        <option value="ielts" selected>IELTS 雅思(G类)</option>
+                        <option value="celpip">CELPIP 思培</option>
+                        <option value="pte">PTE Core 培生</option>
+                        <option value="tef">TEF Canada</option>
+                        <option value="tcf">TCF Canada</option>
+                      </select>
+                    </div>
+                    <div class="conv-field">
+                      <span class="conv-label">阅读</span>
+                      <input type="number" step="0.5" class="test-r conv-input" placeholder="如 7.0">
+                    </div>
+                    <div class="conv-field">
+                      <span class="conv-label">写作</span>
+                      <input type="number" step="0.5" class="test-w conv-input" placeholder="如 7.0">
+                    </div>
+                    <div class="conv-field">
+                      <span class="conv-label">口语</span>
+                      <input type="number" step="0.5" class="test-s conv-input" placeholder="如 7.0">
+                    </div>
+                    <div class="conv-field">
+                      <span class="conv-label">听力</span>
+                      <input type="number" step="0.5" class="test-l conv-input" placeholder="如 8.0">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4 Language abilities CLB selects -->
+                <div class="lang-abilities-grid">
+                  <div class="form-group">
+                    <label class="input-label" for="firstLangReading">阅读 (Reading) CLB</label>
+                    <select id="firstLangReading" name="firstLangReading" class="clb-select">
+                      <option value="clb10">CLB 10 或以上</option>
+                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
+                      <option value="clb8">CLB 8 (雅思6.5)</option>
+                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
+                      <option value="clb6">CLB 6 (雅思5.0–5.5)</option>
+                      <option value="clb5">CLB 5 (雅思4.0–4.5)</option>
+                      <option value="clb4">CLB 4 (雅思3.5)</option>
+                      <option value="less4">低于 CLB 4 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="firstLangWriting">写作 (Writing) CLB</label>
+                    <select id="firstLangWriting" name="firstLangWriting" class="clb-select">
+                      <option value="clb10">CLB 10 或以上</option>
+                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
+                      <option value="clb8">CLB 8 (雅思6.5)</option>
+                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
+                      <option value="clb6">CLB 6 (雅思5.5)</option>
+                      <option value="clb5">CLB 5 (雅思5.0)</option>
+                      <option value="clb4">CLB 4 (雅思4.0–4.5)</option>
+                      <option value="less4">低于 CLB 4 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="firstLangSpeaking">口语 (Speaking) CLB</label>
+                    <select id="firstLangSpeaking" name="firstLangSpeaking" class="clb-select">
+                      <option value="clb10">CLB 10 或以上</option>
+                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
+                      <option value="clb8">CLB 8 (雅思6.5)</option>
+                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
+                      <option value="clb6">CLB 6 (雅思5.5)</option>
+                      <option value="clb5">CLB 5 (雅思5.0)</option>
+                      <option value="clb4">CLB 4 (雅思4.0–4.5)</option>
+                      <option value="less4">低于 CLB 4 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="firstLangListening">听力 (Listening) CLB</label>
+                    <select id="firstLangListening" name="firstLangListening" class="clb-select">
+                      <option value="clb10">CLB 10 或以上</option>
+                      <option value="clb9" selected>CLB 9 (雅思8.0 / 满分交叉迁移)</option>
+                      <option value="clb8">CLB 8 (雅思7.5)</option>
+                      <option value="clb7">CLB 7 (雅思6.0–7.0)</option>
+                      <option value="clb6">CLB 6 (雅思5.5)</option>
+                      <option value="clb5">CLB 5 (雅思5.0)</option>
+                      <option value="clb4">CLB 4 (雅思4.5)</option>
+                      <option value="less4">低于 CLB 4 (0分)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Second Language Toggle Card -->
+              <div class="card-inner-box">
+                <div class="form-group">
+                  <label class="input-label" for="hasSecondLanguage">
+                    是否有第二官方语言考试成绩？（最高加 24 分）
+                  </label>
+                  <select id="hasSecondLanguage" name="hasSecondLanguage">
+                    <option value="no" selected>否（无第二语言成绩）</option>
+                    <option value="yes">是（有法语或英语作为第二语言）</option>
+                  </select>
+                </div>
+
+                <div id="second-lang-block" style="display: none;">
+                  <div class="form-group">
+                    <label class="input-label" for="secondLanguageType">第二语言类型</label>
+                    <select id="secondLanguageType" name="secondLanguageType">
+                      <option value="french" selected>法语 (TEF / TCF)</option>
+                      <option value="english">英语 (IELTS / CELPIP / PTE)</option>
+                    </select>
+                  </div>
+
+                  <div class="lang-abilities-grid">
+                    <div class="form-group">
+                      <label class="input-label" for="secondLangReading">第二语言 阅读</label>
+                      <select id="secondLangReading" name="secondLangReading" class="clb-select">
+                        <option value="clb9">CLB 9 或以上 (6分)</option>
+                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
+                        <option value="clb5">CLB 5 或 6 (1分)</option>
+                        <option value="clb4">低于 CLB 5 (0分)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="input-label" for="secondLangWriting">第二语言 写作</label>
+                      <select id="secondLangWriting" name="secondLangWriting" class="clb-select">
+                        <option value="clb9">CLB 9 或以上 (6分)</option>
+                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
+                        <option value="clb5">CLB 5 或 6 (1分)</option>
+                        <option value="clb4">低于 CLB 5 (0分)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="input-label" for="secondLangSpeaking">第二语言 口语</label>
+                      <select id="secondLangSpeaking" name="secondLangSpeaking" class="clb-select">
+                        <option value="clb9">CLB 9 或以上 (6分)</option>
+                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
+                        <option value="clb5">CLB 5 或 6 (1分)</option>
+                        <option value="clb4">低于 CLB 5 (0分)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="input-label" for="secondLangListening">第二语言 听力</label>
+                      <select id="secondLangListening" name="secondLangListening" class="clb-select">
+                        <option value="clb9">CLB 9 或以上 (6分)</option>
+                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
+                        <option value="clb5">CLB 5 或 6 (1分)</option>
+                        <option value="clb4">低于 CLB 5 (0分)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= STEP 4: 工作经验与技能 ================= -->
+            <section class="wizard-step" data-step="4" aria-labelledby="step4-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 04 / 06</span>
+                <h2 id="step4-title">工作经验与技工资格</h2>
+                <p class="step-desc">境内经验与海外经验将与学历、语言共同参与 Section C“技能交叉转移能力（最高100分）”加分。</p>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="canadianWorkExperience">
+                  在过去10年中，您在加拿大境内积累的合规全职工作经验（TEER 0/1/2/3 类） <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="canadianWorkExperience" name="canadianWorkExperience" required>
+                    <option value="1" selected>1 年加拿大境内经验 (单人40分 / 有配偶35分)</option>
+                    <option value="2">2 年加拿大境内经验 (单人53分 / 有配偶46分)</option>
+                    <option value="3">3 年加拿大境内经验 (单人64分 / 有配偶56分)</option>
+                    <option value="4">4 年加拿大境内经验 (单人72分 / 有配偶63分)</option>
+                    <option value="5">5 年及以上加拿大境内经验 (单人80分 / 有配偶70分)</option>
+                    <option value="none">无或不满 1 年 (0分)</option>
+                  </select>
+                </div>
+                <span class="field-hint">注：留学生在全日制就读期间的兼职/实习（Co-op）经验不计入加拿大技术移民工作经验。</span>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="foreignWorkExperience">
+                  在过去10年中，您在加拿大境外的全职工作经验（中国或其他国家 TEER 0/1/2/3 类） <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="foreignWorkExperience" name="foreignWorkExperience" required>
+                    <option value="0">无海外经验或少于 1 年</option>
+                    <option value="1">1 – 2 年海外工作经验</option>
+                    <option value="3" selected>3 年及以上海外工作经验（交叉转移加分最高档）</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="hasTradeCertificate">
+                  是否持有加拿大省/地区或联邦政府颁发的技工职业资格证书 (Certificate of Qualification in Trade)？ <span class="req">*</span>
+                </label>
+                <div class="select-container">
+                  <select id="hasTradeCertificate" name="hasTradeCertificate">
+                    <option value="no" selected>否 (No)</option>
+                    <option value="yes">是，持有官方技工证书 (最高额外+50分交叉迁移)</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= STEP 5: 配偶加分因素 ================= -->
+            <section class="wizard-step" data-step="5" aria-labelledby="step5-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 05 / 06</span>
+                <h2 id="step5-title">随行配偶加分因素（Section B，最高40分）</h2>
+                <p class="step-desc">当配偶随同移民且非加拿大PR/公民时，其学历（最高10分）、语言（最高20分）与境内经验（最高10分）将为您贡献额外积分。</p>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="spouseEducation">配偶的最高学历（需附 ECA 认证）</label>
+                <div class="select-container">
+                  <select id="spouseEducation" name="spouseEducation">
+                    <option value="bachelor" selected>本科 / 三年制大专 (8分)</option>
+                    <option value="master">硕士学位 / 专业执照学位 (10分)</option>
+                    <option value="doctoral">博士学位 (10分)</option>
+                    <option value="twoOrMore">双学历 (9分)</option>
+                    <option value="twoYear">两年制大专 (7分)</option>
+                    <option value="oneYear">一年制大专/证书 (6分)</option>
+                    <option value="secondary">高中毕业 (2分)</option>
+                    <option value="none">高中以下 (0分)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Spouse Language -->
+              <div class="card-inner-box">
+                <div class="card-inner-header">
+                  <h3>配偶的第一官方语言能力（每项最高5分，满分20分）</h3>
+                </div>
+
+                <div class="lang-abilities-grid">
+                  <div class="form-group">
+                    <label class="input-label" for="spouseLangReading">配偶 阅读 CLB</label>
+                    <select id="spouseLangReading" name="spouseLangReading" class="clb-select">
+                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
+                      <option value="clb7">CLB 7 或 8 (3分)</option>
+                      <option value="clb5">CLB 5 或 6 (1分)</option>
+                      <option value="less4">低于 CLB 5 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="spouseLangWriting">配偶 写作 CLB</label>
+                    <select id="spouseLangWriting" name="spouseLangWriting" class="clb-select">
+                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
+                      <option value="clb7">CLB 7 或 8 (3分)</option>
+                      <option value="clb5">CLB 5 或 6 (1分)</option>
+                      <option value="less4">低于 CLB 5 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="spouseLangSpeaking">配偶 口语 CLB</label>
+                    <select id="spouseLangSpeaking" name="spouseLangSpeaking" class="clb-select">
+                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
+                      <option value="clb7">CLB 7 或 8 (3分)</option>
+                      <option value="clb5">CLB 5 或 6 (1分)</option>
+                      <option value="less4">低于 CLB 5 (0分)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label" for="spouseLangListening">配偶 听力 CLB</label>
+                    <select id="spouseLangListening" name="spouseLangListening" class="clb-select">
+                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
+                      <option value="clb7">CLB 7 或 8 (3分)</option>
+                      <option value="clb5">CLB 5 或 6 (1分)</option>
+                      <option value="less4">低于 CLB 5 (0分)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="spouseCanadianWorkExperience">配偶在过去10年内的加拿大境内工作经验</label>
+                <div class="select-container">
+                  <select id="spouseCanadianWorkExperience" name="spouseCanadianWorkExperience">
+                    <option value="none" selected>无或少于 1 年 (0分)</option>
+                    <option value="1">1 年 (5分)</option>
+                    <option value="2">2 年 (7分)</option>
+                    <option value="3">3 年 (8分)</option>
+                    <option value="4">4 年 (9分)</option>
+                    <option value="5">5 年及以上 (10分)</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================= STEP 6: 附加加分项 ================= -->
+            <section class="wizard-step" data-step="6" aria-labelledby="step6-title">
+              <div class="step-header">
+                <span class="step-counter">步骤 06 / 06</span>
+                <h2 id="step6-title">附加额外加分（Section D，最高600分）</h2>
+                <p class="step-desc">包括省提名（直接加600分保送获邀）、加拿大留学经历、有效工作聘约、亲属加分等。</p>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="hasPnp">
+                  您是否已获得加拿大省/地区提名证书（PNP Provincial Nomination）？
+                </label>
+                <div class="select-container highlight-select">
+                  <select id="hasPnp" name="hasPnp">
+                    <option value="no" selected>否 (No)</option>
+                    <option value="yes">🌟 是，已获得省提名（直接加 600 分，确保下一轮获邀）</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="canadianEducation">
+                  您在加拿大本地正规院校全日制就读并毕业的留学经历
+                </label>
+                <div class="select-container">
+                  <select id="canadianEducation" name="canadianEducation">
+                    <option value="none">无加拿大本地留学文凭 (0分)</option>
+                    <option value="1-2-year">1 或 2 年制大专 / 证书项目 (+15分)</option>
+                    <option value="3-plus-year" selected>3 年以上本科、硕士、博士或执照专业学位 (+30分)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="arrangedEmployment">
+                  是否持有符合移民局要求的加拿大有效雇主聘约 (Job Offer / Arranged Employment)？
+                </label>
+                <div class="select-container">
+                  <select id="arrangedEmployment" name="arrangedEmployment">
+                    <option value="none" selected>无符合条件的 Job Offer (0分)</option>
+                    <option value="noc-0-1-2-3">持有 NOC TEER 0, 1, 2, 3 类有效聘约 (+50分)</option>
+                    <option value="noc-00">持有 NOC TEER 0 Major Group 00 高级行政管理职位聘约 (+200分)</option>
+                  </select>
+                </div>
+                <span class="field-hint">💡 聘约通常需持有正规 LMIA 或 LMIA 豁免工签且连续为雇主工作满1年。</span>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="hasSiblingInCanada">
+                  您或您配偶是否有年满18周岁、现居住在加拿大的直系兄弟姐妹（加拿大公民或PR）？
+                </label>
+                <div class="select-container">
+                  <select id="hasSiblingInCanada" name="hasSiblingInCanada">
+                    <option value="no" selected>否 (No)</option>
+                    <option value="yes">是，有直系兄弟姐妹在加拿大 (+15分)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="french-bonus-callout">
+                <div class="callout-icon">🇫🇷</div>
+                <div class="callout-body">
+                  <strong>法语双语自动加分（最高+50分）：</strong>
+                  <p>系统已根据您在第3步填写的法语能力（达到 NCLC 7）及英语匹配度自动计算，无需重复勾选。</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Wizard Step Actions -->
+            <div class="wizard-actions">
+              <button type="button" class="btn-wizard btn-prev" id="prev-step-btn">
+                <span aria-hidden="true">←</span> <span>上一步</span>
+              </button>
+              <div class="step-indicator" id="step-indicator-text">第 1 / 6 步</div>
+              <button type="button" class="btn-wizard btn-next" id="next-step-btn">
+                <span>下一步</span> <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right: Sticky Dynamic Score & Insights Board -->
+        <aside class="score-sidebar" id="score-result-card">
+          <div class="score-card-sticky">
+            <!-- Header Score Dial -->
+            <div class="score-main-header">
+              <span class="score-kicker">CRS ESTIMATED SCORE</span>
+              <div class="score-number-display">
+                <span class="score-total-digits" id="total-crs-score">524</span>
+                <span class="score-max-unit">/ 1200 分</span>
+              </div>
+              <div class="rank-badge badge-good" id="score-rank-badge">✨ 良好 (CEC / 热门类别定向抽选极大概率)</div>
+            </div>
+
+            <!-- 4 Core Pillars Progress Bars -->
+            <div class="pillars-container">
+              <div class="pillar-item">
+                <div class="pillar-info">
+                  <span class="pillar-title">A. 核心人力资本</span>
+                  <span class="pillar-value" id="score-sec-a">409 / 500</span>
+                </div>
+                <div class="progress-bar-shell">
+                  <div class="progress-bar-core" id="bar-sec-a" style="width: 81.8%;"></div>
+                </div>
+              </div>
+
+              <div class="pillar-item">
+                <div class="pillar-info">
+                  <span class="pillar-title">B. 配偶随行加分</span>
+                  <span class="pillar-value" id="score-sec-b">0 / 40</span>
+                </div>
+                <div class="progress-bar-shell">
+                  <div class="progress-bar-spouse" id="bar-sec-b" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="pillar-item">
+                <div class="pillar-info">
+                  <span class="pillar-title">C. 技能交叉迁移</span>
+                  <span class="pillar-value" id="score-sec-c">100 / 100</span>
+                </div>
+                <div class="progress-bar-shell">
+                  <div class="progress-bar-transfer" id="bar-sec-c" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="pillar-item">
+                <div class="pillar-info">
+                  <span class="pillar-title">D. 额外附加奖励</span>
+                  <span class="pillar-value" id="score-sec-d">15 / 600</span>
+                </div>
+                <div class="progress-bar-shell">
+                  <div class="progress-bar-bonus" id="bar-sec-d" style="width: 2.5%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Breakdown Accordion -->
+            <div class="breakdown-details-panel">
+              <h3 class="breakdown-headline">📊 分项得分明细</h3>
+              <div class="breakdown-items-list" id="detailed-breakdown-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- EE Benchmark Draw Reference -->
+            <div class="benchmarks-box">
+              <h4 class="benchmarks-title">🎯 2026 常见获邀分数线参考</h4>
+              <div class="bench-row">
+                <span class="bench-name">🇫🇷 法语类别定向 (French)</span>
+                <span class="bench-score">~ 390 – 430 分</span>
+              </div>
+              <div class="bench-row">
+                <span class="bench-name">🛠️ 技工类别 (Trades)</span>
+                <span class="bench-score">~ 410 – 445 分</span>
+              </div>
+              <div class="bench-row">
+                <span class="bench-name">🩺 医疗卫生 (Healthcare)</span>
+                <span class="bench-score">~ 425 – 460 分</span>
+              </div>
+              <div class="bench-row">
+                <span class="bench-name">💻 STEM 科技类别</span>
+                <span class="bench-score">~ 485 – 505 分</span>
+              </div>
+              <div class="bench-row">
+                <span class="bench-name">🇨🇦 CEC 加拿大经验类</span>
+                <span class="bench-score">~ 505 – 525 分</span>
+              </div>
+              <div class="bench-row">
+                <span class="bench-name">🌐 全类别常规无差别抽选</span>
+                <span class="bench-score">~ 530 – 545 分</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="sidebar-actions">
+              <button type="button" class="btn-copy-report" id="copy-score-btn">📋 复制我的积分报告</button>
+            </div>
+
+            <p class="official-disclaimer">
+              <strong>免责声明：</strong>本工具基于加拿大移民局 IRCC 官方 CRS 标准算法开发，仅供申请人评估规划参考，最终分数以向移民局递交申请时的官方系统判定为准。
+            </p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-container">
+        <span>© 2026 MapleScore · 加拿大移民 CRS 积分计算器</span>
+        <span>基于 IRCC Express Entry Comprehensive Ranking System 官方规则标准构建</span>
+      </div>
+    </footer>
+  </body>
+</html>

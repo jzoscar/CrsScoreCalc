@@ -1,0 +1,10 @@
+{
+  "name": "CrsScoreCalc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "private": true
+}
