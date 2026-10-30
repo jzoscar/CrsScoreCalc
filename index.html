@@ -204,7 +204,7 @@
               <div class="step-header">
                 <span class="step-counter">步骤 03 / 06</span>
                 <h2 id="step3-title">官方语言能力（第一与第二语言）</h2>
-                <p class="step-desc">语言是 CRS 得分基石，达到 CLB 9（雅思听8说7读7写7）将激发技能交叉转移满分奖励！</p>
+                <p class="step-desc">语言是 CRS 得分基石，直接选择各项 CLB 等级（相同加分区间已智能合并）；达到 CLB 9 将激发技能交叉转移满分奖励！</p>
               </div>
 
               <!-- First Language Card -->
@@ -226,96 +226,57 @@
                   </div>
                 </div>
 
-                <!-- Test Score Quick Converter -->
-                <div class="converter-box lang-test-calc" data-target-prefix="firstLang">
-                  <div class="converter-header">
-                    <span>🧮 快捷考试小分换算器（输入各科分数自动填入 CLB）：</span>
-                  </div>
-                  <div class="converter-row">
-                    <div class="conv-field">
-                      <span class="conv-label">考试类别</span>
-                      <select class="test-type-select conv-select">
-                        <option value="ielts" selected>IELTS 雅思(G类)</option>
-                        <option value="celpip">CELPIP 思培</option>
-                        <option value="pte">PTE Core 培生</option>
-                        <option value="tef">TEF Canada</option>
-                        <option value="tcf">TCF Canada</option>
-                      </select>
-                    </div>
-                    <div class="conv-field">
-                      <span class="conv-label">阅读</span>
-                      <input type="number" step="0.5" class="test-r conv-input" placeholder="如 7.0">
-                    </div>
-                    <div class="conv-field">
-                      <span class="conv-label">写作</span>
-                      <input type="number" step="0.5" class="test-w conv-input" placeholder="如 7.0">
-                    </div>
-                    <div class="conv-field">
-                      <span class="conv-label">口语</span>
-                      <input type="number" step="0.5" class="test-s conv-input" placeholder="如 7.0">
-                    </div>
-                    <div class="conv-field">
-                      <span class="conv-label">听力</span>
-                      <input type="number" step="0.5" class="test-l conv-input" placeholder="如 8.0">
-                    </div>
-                  </div>
-                </div>
-
                 <!-- 4 Language abilities CLB selects -->
                 <div class="lang-abilities-grid">
                   <div class="form-group">
-                    <label class="input-label" for="firstLangReading">阅读 (Reading) CLB</label>
+                    <label class="input-label" for="firstLangReading">阅读 (Reading) CLB 等级</label>
                     <select id="firstLangReading" name="firstLangReading" class="clb-select">
-                      <option value="clb10">CLB 10 或以上</option>
-                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
-                      <option value="clb8">CLB 8 (雅思6.5)</option>
-                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
-                      <option value="clb6">CLB 6 (雅思5.0–5.5)</option>
-                      <option value="clb5">CLB 5 (雅思4.0–4.5)</option>
-                      <option value="clb4">CLB 4 (雅思3.5)</option>
-                      <option value="less4">低于 CLB 4 (0分)</option>
+                      <option value="10">CLB 10 – 12 (最高分档 / 单人34分·有配偶32分)</option>
+                      <option value="9" selected>CLB 9 (高分档 / 触发交叉迁移最高奖励)</option>
+                      <option value="8">CLB 8 (单人23分 / 有配偶22分)</option>
+                      <option value="7">CLB 7 (中高分档 / 基础交叉迁移门槛)</option>
+                      <option value="6">CLB 6 (单人9分 / 有配偶8分)</option>
+                      <option value="4">CLB 4 – 5 (基础分 / 6分)</option>
+                      <option value="0">低于 CLB 4 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="input-label" for="firstLangWriting">写作 (Writing) CLB</label>
+                    <label class="input-label" for="firstLangWriting">写作 (Writing) CLB 等级</label>
                     <select id="firstLangWriting" name="firstLangWriting" class="clb-select">
-                      <option value="clb10">CLB 10 或以上</option>
-                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
-                      <option value="clb8">CLB 8 (雅思6.5)</option>
-                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
-                      <option value="clb6">CLB 6 (雅思5.5)</option>
-                      <option value="clb5">CLB 5 (雅思5.0)</option>
-                      <option value="clb4">CLB 4 (雅思4.0–4.5)</option>
-                      <option value="less4">低于 CLB 4 (0分)</option>
+                      <option value="10">CLB 10 – 12 (最高分档 / 单人34分·有配偶32分)</option>
+                      <option value="9" selected>CLB 9 (高分档 / 触发交叉迁移最高奖励)</option>
+                      <option value="8">CLB 8 (单人23分 / 有配偶22分)</option>
+                      <option value="7">CLB 7 (中高分档 / 基础交叉迁移门槛)</option>
+                      <option value="6">CLB 6 (单人9分 / 有配偶8分)</option>
+                      <option value="4">CLB 4 – 5 (基础分 / 6分)</option>
+                      <option value="0">低于 CLB 4 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="input-label" for="firstLangSpeaking">口语 (Speaking) CLB</label>
+                    <label class="input-label" for="firstLangSpeaking">口语 (Speaking) CLB 等级</label>
                     <select id="firstLangSpeaking" name="firstLangSpeaking" class="clb-select">
-                      <option value="clb10">CLB 10 或以上</option>
-                      <option value="clb9" selected>CLB 9 (雅思7.0 / 满分交叉迁移)</option>
-                      <option value="clb8">CLB 8 (雅思6.5)</option>
-                      <option value="clb7">CLB 7 (雅思6.0 / 基础门槛)</option>
-                      <option value="clb6">CLB 6 (雅思5.5)</option>
-                      <option value="clb5">CLB 5 (雅思5.0)</option>
-                      <option value="clb4">CLB 4 (雅思4.0–4.5)</option>
-                      <option value="less4">低于 CLB 4 (0分)</option>
+                      <option value="10">CLB 10 – 12 (最高分档 / 单人34分·有配偶32分)</option>
+                      <option value="9" selected>CLB 9 (高分档 / 触发交叉迁移最高奖励)</option>
+                      <option value="8">CLB 8 (单人23分 / 有配偶22分)</option>
+                      <option value="7">CLB 7 (中高分档 / 基础交叉迁移门槛)</option>
+                      <option value="6">CLB 6 (单人9分 / 有配偶8分)</option>
+                      <option value="4">CLB 4 – 5 (基础分 / 6分)</option>
+                      <option value="0">低于 CLB 4 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="input-label" for="firstLangListening">听力 (Listening) CLB</label>
+                    <label class="input-label" for="firstLangListening">听力 (Listening) CLB 等级</label>
                     <select id="firstLangListening" name="firstLangListening" class="clb-select">
-                      <option value="clb10">CLB 10 或以上</option>
-                      <option value="clb9" selected>CLB 9 (雅思8.0 / 满分交叉迁移)</option>
-                      <option value="clb8">CLB 8 (雅思7.5)</option>
-                      <option value="clb7">CLB 7 (雅思6.0–7.0)</option>
-                      <option value="clb6">CLB 6 (雅思5.5)</option>
-                      <option value="clb5">CLB 5 (雅思5.0)</option>
-                      <option value="clb4">CLB 4 (雅思4.5)</option>
-                      <option value="less4">低于 CLB 4 (0分)</option>
+                      <option value="10">CLB 10 – 12 (最高分档 / 单人34分·有配偶32分)</option>
+                      <option value="9" selected>CLB 9 (高分档 / 触发交叉迁移最高奖励)</option>
+                      <option value="8">CLB 8 (单人23分 / 有配偶22分)</option>
+                      <option value="7">CLB 7 (中高分档 / 基础交叉迁移门槛)</option>
+                      <option value="6">CLB 6 (单人9分 / 有配偶8分)</option>
+                      <option value="4">CLB 4 – 5 (基础分 / 6分)</option>
+                      <option value="0">低于 CLB 4 (0分)</option>
                     </select>
                   </div>
                 </div>
@@ -344,42 +305,42 @@
 
                   <div class="lang-abilities-grid">
                     <div class="form-group">
-                      <label class="input-label" for="secondLangReading">第二语言 阅读</label>
+                      <label class="input-label" for="secondLangReading">第二语言 阅读 CLB</label>
                       <select id="secondLangReading" name="secondLangReading" class="clb-select">
-                        <option value="clb9">CLB 9 或以上 (6分)</option>
-                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
-                        <option value="clb5">CLB 5 或 6 (1分)</option>
-                        <option value="clb4">低于 CLB 5 (0分)</option>
+                        <option value="9">CLB 9 – 12 (最高档 / 6分)</option>
+                        <option value="7" selected>CLB 7 – 8 (中高档 / 3分)</option>
+                        <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                        <option value="0">低于 CLB 5 (0分)</option>
                       </select>
                     </div>
 
                     <div class="form-group">
-                      <label class="input-label" for="secondLangWriting">第二语言 写作</label>
+                      <label class="input-label" for="secondLangWriting">第二语言 写作 CLB</label>
                       <select id="secondLangWriting" name="secondLangWriting" class="clb-select">
-                        <option value="clb9">CLB 9 或以上 (6分)</option>
-                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
-                        <option value="clb5">CLB 5 或 6 (1分)</option>
-                        <option value="clb4">低于 CLB 5 (0分)</option>
+                        <option value="9">CLB 9 – 12 (最高档 / 6分)</option>
+                        <option value="7" selected>CLB 7 – 8 (中高档 / 3分)</option>
+                        <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                        <option value="0">低于 CLB 5 (0分)</option>
                       </select>
                     </div>
 
                     <div class="form-group">
-                      <label class="input-label" for="secondLangSpeaking">第二语言 口语</label>
+                      <label class="input-label" for="secondLangSpeaking">第二语言 口语 CLB</label>
                       <select id="secondLangSpeaking" name="secondLangSpeaking" class="clb-select">
-                        <option value="clb9">CLB 9 或以上 (6分)</option>
-                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
-                        <option value="clb5">CLB 5 或 6 (1分)</option>
-                        <option value="clb4">低于 CLB 5 (0分)</option>
+                        <option value="9">CLB 9 – 12 (最高档 / 6分)</option>
+                        <option value="7" selected>CLB 7 – 8 (中高档 / 3分)</option>
+                        <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                        <option value="0">低于 CLB 5 (0分)</option>
                       </select>
                     </div>
 
                     <div class="form-group">
-                      <label class="input-label" for="secondLangListening">第二语言 听力</label>
+                      <label class="input-label" for="secondLangListening">第二语言 听力 CLB</label>
                       <select id="secondLangListening" name="secondLangListening" class="clb-select">
-                        <option value="clb9">CLB 9 或以上 (6分)</option>
-                        <option value="clb7" selected>CLB 7 或 8 (3分)</option>
-                        <option value="clb5">CLB 5 或 6 (1分)</option>
-                        <option value="clb4">低于 CLB 5 (0分)</option>
+                        <option value="9">CLB 9 – 12 (最高档 / 6分)</option>
+                        <option value="7" selected>CLB 7 – 8 (中高档 / 3分)</option>
+                        <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                        <option value="0">低于 CLB 5 (0分)</option>
                       </select>
                     </div>
                   </div>
@@ -392,7 +353,7 @@
               <div class="step-header">
                 <span class="step-counter">步骤 04 / 06</span>
                 <h2 id="step4-title">工作经验与技工资格</h2>
-                <p class="step-desc">境内经验与海外经验将与学历、语言共同参与 Section C“技能交叉转移能力（最高100分）”加分。</p>
+                <p class="step-desc">境内经验与海外经验将与学历、语言共同参与 Section C“技能交叉转移能力（最高100分）”及劳动力市场整合加分。</p>
               </div>
 
               <div class="form-group">
@@ -410,6 +371,24 @@
                   </select>
                 </div>
                 <span class="field-hint">注：留学生在全日制就读期间的兼职/实习（Co-op）经验不计入加拿大技术移民工作经验。</span>
+              </div>
+
+              <!-- 2026 IRCC 新规：加拿大境内高薪职业工作经验额外加分 -->
+              <div id="canadian-high-wage-box" class="subfield-box" style="margin-top: 14px;">
+                <div class="form-group">
+                  <label class="input-label" for="canadianHighWageExperience">
+                    加拿大境内高薪职业工作经验额外加分（2026 IRCC 新规）
+                  </label>
+                  <div class="select-container">
+                    <select id="canadianHighWageExperience" name="canadianHighWageExperience">
+                      <option value="none" selected>普通薪资水平或无 12 个月高薪经验 (0分)</option>
+                      <option value="wage-1.3x">职业中位数薪资达到全加平均中位数 1.3 倍至 1.5 倍 (+20分)</option>
+                      <option value="wage-1.5x">职业中位数薪资达到全加平均中位数 1.5 倍至 2.0 倍 (+40分)</option>
+                      <option value="wage-2x">职业中位数薪资达到全加平均中位数 2.0 倍及以上 (+70分)</option>
+                    </select>
+                  </div>
+                  <span class="field-hint">💡 需累计满 12 个月（1,560小时）的高薪职业经验，与工龄分叠加计算，最高可达 150 分（单人）/ 140 分（有配偶）。</span>
+                </div>
               </div>
 
               <div class="form-group">
@@ -472,40 +451,40 @@
                   <div class="form-group">
                     <label class="input-label" for="spouseLangReading">配偶 阅读 CLB</label>
                     <select id="spouseLangReading" name="spouseLangReading" class="clb-select">
-                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
-                      <option value="clb7">CLB 7 或 8 (3分)</option>
-                      <option value="clb5">CLB 5 或 6 (1分)</option>
-                      <option value="less4">低于 CLB 5 (0分)</option>
+                      <option value="9" selected>CLB 9 – 12 (最高档 / 5分)</option>
+                      <option value="7">CLB 7 – 8 (中高档 / 3分)</option>
+                      <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                      <option value="0">低于 CLB 5 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label class="input-label" for="spouseLangWriting">配偶 写作 CLB</label>
                     <select id="spouseLangWriting" name="spouseLangWriting" class="clb-select">
-                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
-                      <option value="clb7">CLB 7 或 8 (3分)</option>
-                      <option value="clb5">CLB 5 或 6 (1分)</option>
-                      <option value="less4">低于 CLB 5 (0分)</option>
+                      <option value="9" selected>CLB 9 – 12 (最高档 / 5分)</option>
+                      <option value="7">CLB 7 – 8 (中高档 / 3分)</option>
+                      <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                      <option value="0">低于 CLB 5 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label class="input-label" for="spouseLangSpeaking">配偶 口语 CLB</label>
                     <select id="spouseLangSpeaking" name="spouseLangSpeaking" class="clb-select">
-                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
-                      <option value="clb7">CLB 7 或 8 (3分)</option>
-                      <option value="clb5">CLB 5 或 6 (1分)</option>
-                      <option value="less4">低于 CLB 5 (0分)</option>
+                      <option value="9" selected>CLB 9 – 12 (最高档 / 5分)</option>
+                      <option value="7">CLB 7 – 8 (中高档 / 3分)</option>
+                      <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                      <option value="0">低于 CLB 5 (0分)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label class="input-label" for="spouseLangListening">配偶 听力 CLB</label>
                     <select id="spouseLangListening" name="spouseLangListening" class="clb-select">
-                      <option value="clb9" selected>CLB 9 或以上 (5分)</option>
-                      <option value="clb7">CLB 7 或 8 (3分)</option>
-                      <option value="clb5">CLB 5 或 6 (1分)</option>
-                      <option value="less4">低于 CLB 5 (0分)</option>
+                      <option value="9" selected>CLB 9 – 12 (最高档 / 5分)</option>
+                      <option value="7">CLB 7 – 8 (中高档 / 3分)</option>
+                      <option value="5">CLB 5 – 6 (基础档 / 1分)</option>
+                      <option value="0">低于 CLB 5 (0分)</option>
                     </select>
                   </div>
                 </div>
@@ -530,7 +509,7 @@
             <section class="wizard-step" data-step="6" aria-labelledby="step6-title">
               <div class="step-header">
                 <span class="step-counter">步骤 06 / 06</span>
-                <h2 id="step6-title">附加额外加分（Section D，最高600分）</h2>
+                <h2 id="step6-title">附加额外加分与聘约（Section D，最高600分）</h2>
                 <p class="step-desc">包括省提名（直接加600分保送获邀）、加拿大留学经历、有效工作聘约、亲属加分等。</p>
               </div>
 
@@ -559,18 +538,42 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="input-label" for="arrangedEmployment">
-                  是否持有符合移民局要求的加拿大有效雇主聘约 (Job Offer / Arranged Employment)？
-                </label>
-                <div class="select-container">
-                  <select id="arrangedEmployment" name="arrangedEmployment">
-                    <option value="none" selected>无符合条件的 Job Offer (0分)</option>
-                    <option value="noc-0-1-2-3">持有 NOC TEER 0, 1, 2, 3 类有效聘约 (+50分)</option>
-                    <option value="noc-00">持有 NOC TEER 0 Major Group 00 高级行政管理职位聘约 (+200分)</option>
-                  </select>
+              <!-- 2026 IRCC 新规：Job Offer 聘约加分（取消LMIA，高薪加分，与工作经验二选一） -->
+              <div class="card-inner-box">
+                <div class="card-inner-header">
+                  <div class="title-with-badge">
+                    <span class="card-inner-badge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary);">2026 新规</span>
+                    <h3>有效工作聘约 (Job Offer) 与劳动力市场整合加分</h3>
+                  </div>
                 </div>
-                <span class="field-hint">💡 聘约通常需持有正规 LMIA 或 LMIA 豁免工签且连续为雇主工作满1年。</span>
+
+                <div class="form-group">
+                  <label class="input-label" for="hasJobOffer">
+                    是否持有符合移民局要求的加拿大有效雇主聘约 (Job Offer)？
+                  </label>
+                  <div class="select-container">
+                    <select id="hasJobOffer" name="hasJobOffer">
+                      <option value="no" selected>否 (无 Job Offer)</option>
+                      <option value="yes">是 (持有有效 Job Offer)</option>
+                    </select>
+                  </div>
+                  <span class="field-hint">💡 2026 新规已取消 LMIA 强制要求；系统会自动对比您的「加拿大工作经验总分」与「Job Offer 聘约加分」，取二者最高分计入 CRS。</span>
+                </div>
+
+                <div id="job-offer-details" class="subfield-box" style="display: none; margin-top: 12px;">
+                  <div class="form-group">
+                    <label class="input-label" for="jobOfferWageLevel">聘约职位的高薪职业等级 (High-Wage Occupation Category)</label>
+                    <div class="select-container">
+                      <select id="jobOfferWageLevel" name="jobOfferWageLevel">
+                        <option value="offer-2x">职业薪资达到全加平均中位数 2.0 倍及以上 (+100分)</option>
+                        <option value="offer-1.5x" selected>职业薪资达到全加平均中位数 1.5 倍至 2.0 倍 (+70分)</option>
+                        <option value="offer-1.3x">职业薪资达到全加平均中位数 1.3 倍至 1.5 倍 (+50分)</option>
+                        <option value="none">普通职位聘约 (低于 1.3 倍中位数薪资 / 0分)</option>
+                      </select>
+                    </div>
+                    <span class="field-hint">根据职位对应 NOC 代码的全加中位数薪资评定，最高可获 100 分。</span>
+                  </div>
+                </div>
               </div>
 
               <div class="form-group">

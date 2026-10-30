@@ -136,8 +136,8 @@ function getAgeKey(age) {
 
 function getClbKey(clb) {
   if (!clb) return 'less4'
-  const str = String(clb).toLowerCase()
-  if (str === 'less4' || str === '<4' || str === '0' || str === '1' || str === '2' || str === '3') return 'less4'
+  const str = String(clb).toLowerCase().trim()
+  if (str === 'less4' || str === '<4' || str === '<5' || str === '0' || str === '1' || str === '2' || str === '3') return 'less4'
   const num = parseInt(str.replace(/\D/g, ''), 10)
   if (isNaN(num) || num < 4) return 'less4'
   if (num >= 10) return 'clb10'
@@ -146,8 +146,8 @@ function getClbKey(clb) {
 
 function getClbLevel(clb) {
   if (!clb) return 0
-  const str = String(clb).toLowerCase()
-  if (str.includes('less') || str.includes('<')) return 3
+  const str = String(clb).toLowerCase().trim()
+  if (str.includes('less') || str.includes('<') || str === '0') return 0
   const num = parseInt(str.replace(/\D/g, ''), 10)
   return isNaN(num) ? 0 : num
 }
@@ -160,7 +160,7 @@ function getWorkYearsKey(years) {
 }
 
 /**
- * Main CRS Calculation Function
+ * Main CRS Calculation Function (Updated with 2026 IRCC Labour Market Integration rules)
  */
 function calculateCRS(input = {}) {
   const isMarried = input.maritalStatus === 'married' || input.maritalStatus === 'common-law'
@@ -170,7 +170,7 @@ function calculateCRS(input = {}) {
   const hasAccompanyingSpouse = isMarried && !spouseIsCitizenOrPR && spouseAccompanying
   const spouseMode = hasAccompanyingSpouse ? 'withSpouse' : 'withoutSpouse'
 
-  // Section A
+  // Section A - Core Human Capital
   const ageKey = getAgeKey(input.age)
   const ageScore = CRS_CONFIG.agePoints[spouseMode][ageKey] || 0
 
@@ -199,13 +199,64 @@ function calculateCRS(input = {}) {
     secondLanguageTotal = Math.min(rawSecondTotal, maxSecond)
   }
 
+  // 2026 Labour Market Integration Factor (劳动力市场整合因素)
+  // 1. Canadian Work Experience (Work-length + High-wage occupation points)
   const caWorkKey = getWorkYearsKey(input.canadianWorkExperience)
-  const canadianWorkScore = CRS_CONFIG.canadianWorkPoints[spouseMode][caWorkKey] || 0
+  const caWorkYears = parseInt(input.canadianWorkExperience, 10) || 0
+  const caWorkLengthScore = CRS_CONFIG.canadianWorkPoints[spouseMode][caWorkKey] || 0
 
-  const sectionATotal = ageScore + educationScore + firstLanguageTotal + secondLanguageTotal + canadianWorkScore
+  let caHighWageScore = 0
+  if (caWorkYears >= 1) {
+    if (input.canadianHighWageExperience === 'wage-2x') {
+      caHighWageScore = 70
+    } else if (input.canadianHighWageExperience === 'wage-1.5x') {
+      caHighWageScore = 40
+    } else if (input.canadianHighWageExperience === 'wage-1.3x') {
+      caHighWageScore = 20
+    }
+  }
+  const canadianWorkTotal = caWorkLengthScore + caHighWageScore
+
+  // 2. Qualifying Job Offer (2026: No LMIA required; based on High-wage occupation levels)
+  let jobOfferScore = 0
+  const hasJobOffer = input.hasJobOffer === 'yes' || input.hasJobOffer === true ||
+    (input.arrangedEmployment && input.arrangedEmployment !== 'none')
+
+  let effectiveJobOfferTier = input.jobOfferWageLevel || 'none'
+  // Backward compatibility with legacy arrangedEmployment values if passed
+  if (!input.jobOfferWageLevel && input.arrangedEmployment) {
+    if (input.arrangedEmployment === 'noc-00') effectiveJobOfferTier = 'offer-2x'
+    else if (input.arrangedEmployment === 'noc-0-1-2-3') effectiveJobOfferTier = 'offer-1.3x'
+  }
+
+  if (hasJobOffer) {
+    if (effectiveJobOfferTier === 'offer-2x') {
+      jobOfferScore = 100
+    } else if (effectiveJobOfferTier === 'offer-1.5x') {
+      jobOfferScore = 70
+    } else if (effectiveJobOfferTier === 'offer-1.3x') {
+      jobOfferScore = 50
+    }
+  }
+
+  // 3. Compare Canadian Work Experience vs Job Offer (Take the higher one, Max 150 points)
+  let selectedLmiFactor = 'canadianWork'
+  let labourMarketIntegrationTotal = canadianWorkTotal
+
+  if (jobOfferScore > canadianWorkTotal) {
+    selectedLmiFactor = 'jobOffer'
+    labourMarketIntegrationTotal = jobOfferScore
+  }
+
+  const maxLmi = hasAccompanyingSpouse ? 140 : 150
+  labourMarketIntegrationTotal = Math.min(maxLmi, labourMarketIntegrationTotal)
+
+  // Section A total includes Core Human Capital + Canadian Work Length (or LMI)
+  const coreHumanCapitalTotal = ageScore + educationScore + firstLanguageTotal + secondLanguageTotal
+  const sectionATotal = coreHumanCapitalTotal + caWorkLengthScore
   const maxSectionA = hasAccompanyingSpouse ? 460 : 500
 
-  // Section B
+  // Section B - Spouse Factors
   let spouseEducationScore = 0
   let spouseLanguageScore = 0
   let spouseCanadianWorkScore = 0
@@ -229,7 +280,7 @@ function calculateCRS(input = {}) {
     sectionBTotal = Math.min(40, spouseEducationScore + spouseLanguageScore + spouseCanadianWorkScore)
   }
 
-  // Section C
+  // Section C - Skill Transferability Factors (Unchanged: uses CA work length, NOT high-wage)
   const clbR = getClbLevel(input.firstLangReading)
   const clbW = getClbLevel(input.firstLangWriting)
   const clbS = getClbLevel(input.firstLangSpeaking)
@@ -239,7 +290,6 @@ function calculateCRS(input = {}) {
   const allClb9Plus = clbR >= 9 && clbW >= 9 && clbS >= 9 && clbL >= 9
   const allClb5Plus = clbR >= 5 && clbW >= 5 && clbS >= 5 && clbL >= 5
 
-  const caWorkYears = parseInt(input.canadianWorkExperience, 10) || 0
   const foreignWorkYears = parseInt(input.foreignWorkExperience, 10) || 0
 
   let eduTier = 0
@@ -298,7 +348,7 @@ function calculateCRS(input = {}) {
 
   const sectionCTotal = Math.min(100, educationTransferability + foreignWorkTransferability + tradePoints)
 
-  // Section D
+  // Section D - Additional Factors
   const siblingPoints = (input.hasSiblingInCanada === 'yes' || input.hasSiblingInCanada === true) ? 15 : 0
 
   let frenchPoints = 0
@@ -342,19 +392,13 @@ function calculateCRS(input = {}) {
     canadianEducationPoints = 30
   }
 
-  let arrangedEmploymentPoints = 0
-  if (input.arrangedEmployment === 'noc-00') {
-    arrangedEmploymentPoints = 200
-  } else if (input.arrangedEmployment === 'noc-0-1-2-3') {
-    arrangedEmploymentPoints = 50
-  }
-
   const pnpPoints = (input.hasPnp === 'yes' || input.hasPnp === true) ? 600 : 0
 
-  const rawSectionD = siblingPoints + frenchPoints + canadianEducationPoints + arrangedEmploymentPoints + pnpPoints
+  const rawSectionD = siblingPoints + frenchPoints + canadianEducationPoints + pnpPoints
   const sectionDTotal = Math.min(600, rawSectionD)
 
-  const grandTotal = Math.min(1200, sectionATotal + sectionBTotal + sectionCTotal + sectionDTotal)
+  // Overall Total: Core (A) + Labour Market Integration + Spouse (B) + Transferability (C) + Additional (D)
+  const grandTotal = Math.min(1200, coreHumanCapitalTotal + labourMarketIntegrationTotal + sectionBTotal + sectionCTotal + sectionDTotal)
 
   return {
     total: grandTotal,
@@ -362,6 +406,7 @@ function calculateCRS(input = {}) {
     spouseMode,
     sectionA: {
       total: sectionATotal,
+      coreTotal: coreHumanCapitalTotal,
       max: maxSectionA,
       age: ageScore,
       education: educationScore,
@@ -369,7 +414,24 @@ function calculateCRS(input = {}) {
       firstLangBreakdown: firstLangScores,
       secondLanguage: secondLanguageTotal,
       secondLangBreakdown: secondLangScores,
-      canadianWork: canadianWorkScore
+      canadianWork: caWorkLengthScore
+    },
+    labourMarketIntegration: {
+      total: labourMarketIntegrationTotal,
+      max: maxLmi,
+      selectedFactor: selectedLmiFactor,
+      canadianWork: {
+        total: canadianWorkTotal,
+        workLengthPoints: caWorkLengthScore,
+        highWagePoints: caHighWageScore,
+        years: caWorkYears,
+        highWageTier: input.canadianHighWageExperience || 'none'
+      },
+      jobOffer: {
+        total: jobOfferScore,
+        hasOffer: hasJobOffer,
+        wageTier: effectiveJobOfferTier
+      }
     },
     sectionB: {
       total: sectionBTotal,
@@ -395,7 +457,7 @@ function calculateCRS(input = {}) {
       sibling: siblingPoints,
       french: frenchPoints,
       canadianEducation: canadianEducationPoints,
-      arrangedEmployment: arrangedEmploymentPoints,
+      arrangedEmployment: jobOfferScore,
       pnp: pnpPoints
     }
   }
@@ -611,17 +673,19 @@ const PRESETS = {
       firstLangListening: '9',
       hasSecondLanguage: 'no',
       canadianWorkExperience: '1',
+      canadianHighWageExperience: 'none',
       foreignWorkExperience: '0',
       hasTradeCertificate: 'no',
       hasSiblingInCanada: 'no',
       canadianEducation: '3-plus-year',
-      arrangedEmployment: 'none',
+      hasJobOffer: 'no',
+      jobOfferWageLevel: 'none',
       hasPnp: 'no'
     }
   },
   masterWorker: {
     name: '🌍 海外高学历白领',
-    desc: '29岁 · 硕士学位 · 3年海外经验 · 1年加拿大经验 · 英语CLB 9 (8777)',
+    desc: '29岁 · 硕士学位 · 3年海外经验 · 1年加拿大高薪经验 · 英语CLB 9',
     data: {
       maritalStatus: 'single',
       age: '29',
@@ -633,11 +697,13 @@ const PRESETS = {
       firstLangListening: '9',
       hasSecondLanguage: 'no',
       canadianWorkExperience: '1',
+      canadianHighWageExperience: 'wage-1.5x',
       foreignWorkExperience: '3',
       hasTradeCertificate: 'no',
       hasSiblingInCanada: 'no',
       canadianEducation: '1-2-year',
-      arrangedEmployment: 'none',
+      hasJobOffer: 'no',
+      jobOfferWageLevel: 'none',
       hasPnp: 'no'
     }
   },
@@ -657,6 +723,7 @@ const PRESETS = {
       firstLangListening: '9',
       hasSecondLanguage: 'no',
       canadianWorkExperience: '2',
+      canadianHighWageExperience: 'none',
       foreignWorkExperience: '2',
       spouseEducation: 'bachelor',
       spouseLangReading: '8',
@@ -667,7 +734,8 @@ const PRESETS = {
       hasTradeCertificate: 'no',
       hasSiblingInCanada: 'no',
       canadianEducation: 'none',
-      arrangedEmployment: 'none',
+      hasJobOffer: 'no',
+      jobOfferWageLevel: 'none',
       hasPnp: 'no'
     }
   },
@@ -690,11 +758,13 @@ const PRESETS = {
       secondLangSpeaking: '6',
       secondLangListening: '6',
       canadianWorkExperience: '1',
+      canadianHighWageExperience: 'none',
       foreignWorkExperience: '1',
       hasTradeCertificate: 'no',
       hasSiblingInCanada: 'no',
       canadianEducation: 'none',
-      arrangedEmployment: 'none',
+      hasJobOffer: 'no',
+      jobOfferWageLevel: 'none',
       hasPnp: 'no'
     }
   }
@@ -768,6 +838,21 @@ if (typeof document !== 'undefined') {
       if (secondLangBlock) {
         secondLangBlock.style.display = hasSecondLang ? 'block' : 'none'
       }
+
+      // Canadian High Wage Box visibility
+      const caWorkVal = form.elements['canadianWorkExperience']?.value
+      const caYears = parseInt(caWorkVal, 10) || 0
+      const caHighWageBox = document.querySelector('#canadian-high-wage-box')
+      if (caHighWageBox) {
+        caHighWageBox.style.display = (caYears >= 1) ? 'block' : 'none'
+      }
+
+      // Job Offer Details visibility
+      const hasJobOfferVal = form.elements['hasJobOffer']?.value === 'yes'
+      const jobOfferDetails = document.querySelector('#job-offer-details')
+      if (jobOfferDetails) {
+        jobOfferDetails.style.display = hasJobOfferVal ? 'block' : 'none'
+      }
     }
 
     // Read form values
@@ -804,13 +889,14 @@ if (typeof document !== 'undefined') {
       }
 
       // Sections
-      secAScoreEl.textContent = `${result.sectionA.total} / ${result.sectionA.max}`
+      secAScoreEl.textContent = `${result.sectionA.coreTotal} / ${result.hasAccompanyingSpouse ? 390 : 420}`
       secBScoreEl.textContent = `${result.sectionB.total} / 40`
       secCScoreEl.textContent = `${result.sectionC.total} / 100`
       secDScoreEl.textContent = `${result.sectionD.total} / 600`
 
       // Progress bars
-      if (barA) barA.style.width = `${Math.min(100, (result.sectionA.total / result.sectionA.max) * 100)}%`
+      const maxCoreA = result.hasAccompanyingSpouse ? 390 : 420
+      if (barA) barA.style.width = `${Math.min(100, (result.sectionA.coreTotal / maxCoreA) * 100)}%`
       if (barB) barB.style.width = `${Math.min(100, (result.sectionB.total / 40) * 100)}%`
       if (barC) barC.style.width = `${Math.min(100, (result.sectionC.total / 100) * 100)}%`
       if (barD) barD.style.width = `${Math.min(100, (result.sectionD.total / 600) * 100)}%`
@@ -823,27 +909,60 @@ if (typeof document !== 'undefined') {
       const container = document.querySelector('#detailed-breakdown-list')
       if (!container) return
 
+      const lmi = result.labourMarketIntegration
       const items = [
         { cat: '核心因素 A', label: '申请人年龄', points: result.sectionA.age },
         { cat: '核心因素 A', label: '最高学历水平', points: result.sectionA.education },
         { cat: '核心因素 A', label: '第一官方语言能力', points: result.sectionA.firstLanguage },
-        { cat: '核心因素 A', label: '第二官方语言能力', points: result.sectionA.secondLanguage },
-        { cat: '核心因素 A', label: '加拿大境内工作经验', points: result.sectionA.canadianWork },
+        { cat: '核心因素 A', label: '第二官方语言能力', points: result.sectionA.secondLanguage }
+      ]
+
+      // Labour Market Integration item (2026 rule)
+      if (lmi.selectedFactor === 'canadianWork') {
+        items.push({
+          cat: '劳动力整合 (2026)',
+          label: `加拿大工作经验工龄分 (${lmi.canadianWork.years}年)`,
+          points: lmi.canadianWork.workLengthPoints
+        })
+        if (lmi.canadianWork.highWagePoints > 0) {
+          items.push({
+            cat: '劳动力整合 (2026)',
+            label: '加拿大高薪职业经验额外加分',
+            points: lmi.canadianWork.highWagePoints
+          })
+        }
+      } else {
+        items.push({
+          cat: '劳动力整合 (2026)',
+          label: '加拿大有效聘约 (Job Offer 高薪加分)',
+          points: lmi.jobOffer.total
+        })
+      }
+
+      // Section B
+      items.push(
         { cat: '配偶因素 B', label: '配偶学历', points: result.sectionB.education },
         { cat: '配偶因素 B', label: '配偶语言能力', points: result.sectionB.language },
-        { cat: '配偶因素 B', label: '配偶加拿大工作经验', points: result.sectionB.canadianWork },
+        { cat: '配偶因素 B', label: '配偶加拿大工作经验', points: result.sectionB.canadianWork }
+      )
+
+      // Section C
+      items.push(
         { cat: '交叉迁移 C', label: '学历 + 语言/境内经验', points: result.sectionC.educationTransferability },
         { cat: '交叉迁移 C', label: '海外经验 + 语言/境内经验', points: result.sectionC.foreignWorkTransferability },
-        { cat: '交叉迁移 C', label: '技工职业资格证书', points: result.sectionC.tradePoints },
+        { cat: '交叉迁移 C', label: '技工职业资格证书', points: result.sectionC.tradePoints }
+      )
+
+      // Section D
+      items.push(
         { cat: '附加加分 D', label: '加拿大直系兄弟姐妹', points: result.sectionD.sibling },
         { cat: '附加加分 D', label: '法语双语高分奖励', points: result.sectionD.french },
         { cat: '附加加分 D', label: '加拿大本地留学学历', points: result.sectionD.canadianEducation },
-        { cat: '附加加分 D', label: '加拿大有效雇主聘约 (Job Offer)', points: result.sectionD.arrangedEmployment },
         { cat: '附加加分 D', label: '省提名项目 (PNP 获邀)', points: result.sectionD.pnp }
-      ]
+      )
 
       container.innerHTML = items
-        .filter(item => item.points > 0 || item.cat.includes('核心因素'))
+        .filter(item => item.points > 0 || item.cat.includes('核心因素') || item.cat.includes('劳动力整合'))
         .map(item => `
           <div class="breakdown-item">
             <div class="breakdown-meta">
@@ -1015,13 +1134,19 @@ if (typeof document !== 'undefined') {
       copyBtn.addEventListener('click', () => {
         const data = getFormData()
         const res = calculateCRS(data)
+        const lmi = res.labourMarketIntegration
+        const lmiDesc = lmi.selectedFactor === 'canadianWork'
+          ? `境内工作经验计分 (${lmi.canadianWork.total}分 = 工龄${lmi.canadianWork.workLengthPoints}分 + 高薪${lmi.canadianWork.highWagePoints}分)`
+          : `Job Offer 聘约加分 (${lmi.jobOffer.total}分)`
+
         const summaryText = `🇨🇦 加拿大移民 Express Entry CRS 算分结果：
 【总分】：${res.total} / 1200 分
-• 核心人力资本（A项）：${res.sectionA.total} / ${res.sectionA.max} 分
+• 核心人力资本（A项）：${res.sectionA.coreTotal} / ${res.hasAccompanyingSpouse ? 390 : 420} 分
+• 劳动力市场整合（2026新规）：${lmi.total} / ${lmi.max} 分 [${lmiDesc}]
 • 配偶加分因素（B项）：${res.sectionB.total} / 40 分
 • 技能交叉转移（C项）：${res.sectionC.total} / 100 分
 • 额外附加加分（D项）：${res.sectionD.total} / 600 分
-（计算器版本：2026 最新官方标准算法）`
+（计算器版本：2026 最新官方标准算法 · 劳动力市场整合与无LMIA聘约规则）`
 
         navigator.clipboard.writeText(summaryText).then(() => {
           copyBtn.textContent = '✓ 已复制成绩单'
@@ -1031,50 +1156,6 @@ if (typeof document !== 'undefined') {
         })
       })
     }
-
-    // Language modal / test converter handlers
-    const langScoreInputs = document.querySelectorAll('.lang-test-calc')
-    langScoreInputs.forEach(inputWrapper => {
-      const testSelect = inputWrapper.querySelector('.test-type-select')
-      const rInput = inputWrapper.querySelector('.test-r')
-      const wInput = inputWrapper.querySelector('.test-w')
-      const sInput = inputWrapper.querySelector('.test-s')
-      const lInput = inputWrapper.querySelector('.test-l')
-      const targetPrefix = inputWrapper.dataset.targetPrefix
-
-      function syncClb() {
-        if (!testSelect) return
-        const testType = testSelect.value
-        const converter = LANGUAGE_CONVERTERS[testType]
-        if (!converter) return
-
-        if (rInput && rInput.value) {
-          const clbVal = converter.reading(rInput.value)
-          const targetField = form.elements[`${targetPrefix}Reading`]
-          if (targetField) targetField.value = clbVal
-        }
-        if (wInput && wInput.value) {
-          const clbVal = converter.writing(wInput.value)
-          const targetField = form.elements[`${targetPrefix}Writing`]
-          if (targetField) targetField.value = clbVal
-        }
-        if (sInput && sInput.value) {
-          const clbVal = converter.speaking(sInput.value)
-          const targetField = form.elements[`${targetPrefix}Speaking`]
-          if (targetField) targetField.value = clbVal
-        }
-        if (lInput && lInput.value) {
-          const clbVal = converter.listening(lInput.value)
-          const targetField = form.elements[`${targetPrefix}Listening`]
-          if (targetField) targetField.value = clbVal
-        }
-        updateScoreDisplay()
-      }
-
-      [testSelect, rInput, wInput, sInput, lInput].forEach(elem => {
-        if (elem) elem.addEventListener('input', syncClb)
-      })
-    })
 
     // Initialize Default View
     updateVisibility()

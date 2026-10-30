@@ -110,6 +110,130 @@ test('Calculates French language bonus points (25 vs 50)', () => {
   assert.equal(resBilingual.sectionD.french, 50)
 })
 
+test('Calculates 2026 Labour Market Integration high-wage Canadian work points', () => {
+  // 1 yr CA work (40) + 1.3x (+20) = 60
+  const res1_3x = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '1',
+    canadianHighWageExperience: 'wage-1.3x'
+  })
+  assert.equal(res1_3x.labourMarketIntegration.canadianWork.workLengthPoints, 40)
+  assert.equal(res1_3x.labourMarketIntegration.canadianWork.highWagePoints, 20)
+  assert.equal(res1_3x.labourMarketIntegration.canadianWork.total, 60)
+  assert.equal(res1_3x.labourMarketIntegration.total, 60)
+
+  // 1 yr CA work (40) + 1.5x (+40) = 80
+  const res1_5x = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '1',
+    canadianHighWageExperience: 'wage-1.5x'
+  })
+  assert.equal(res1_5x.labourMarketIntegration.canadianWork.highWagePoints, 40)
+  assert.equal(res1_5x.labourMarketIntegration.total, 80)
+
+  // 5 yr CA work (80) + 2.0x (+70) = 150 (single max)
+  const res2x = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '5',
+    canadianHighWageExperience: 'wage-2x'
+  })
+  assert.equal(res2x.labourMarketIntegration.canadianWork.highWagePoints, 70)
+  assert.equal(res2x.labourMarketIntegration.total, 150)
+
+  // With spouse: 5 yr CA work (70) + 2.0x (+70) = 140 (married max)
+  const resMarried2x = calculateCRS({
+    maritalStatus: 'married',
+    spouseIsCitizenOrPR: 'no',
+    spouseAccompanying: 'yes',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '5',
+    canadianHighWageExperience: 'wage-2x'
+  })
+  assert.equal(resMarried2x.labourMarketIntegration.canadianWork.workLengthPoints, 70)
+  assert.equal(resMarried2x.labourMarketIntegration.canadianWork.highWagePoints, 70)
+  assert.equal(resMarried2x.labourMarketIntegration.total, 140)
+})
+
+test('Calculates 2026 Job Offer points (no LMIA required) and Labour Market Integration either/or selection', () => {
+  // Case 1: No CA work, but has Job Offer 2.0x (100 pts) -> picks Job Offer
+  const resOfferOnly = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '0',
+    hasJobOffer: 'yes',
+    jobOfferWageLevel: 'offer-2x'
+  })
+  assert.equal(resOfferOnly.labourMarketIntegration.jobOffer.total, 100)
+  assert.equal(resOfferOnly.labourMarketIntegration.selectedFactor, 'jobOffer')
+  assert.equal(resOfferOnly.labourMarketIntegration.total, 100)
+
+  // Case 2: 1 yr CA work (40 pts) vs Job Offer 1.5x (70 pts) -> picks Job Offer (70 pts)
+  const resOfferWins = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '1',
+    canadianHighWageExperience: 'none', // 40 pts
+    hasJobOffer: 'yes',
+    jobOfferWageLevel: 'offer-1.5x' // 70 pts
+  })
+  assert.equal(resOfferWins.labourMarketIntegration.canadianWork.total, 40)
+  assert.equal(resOfferWins.labourMarketIntegration.jobOffer.total, 70)
+  assert.equal(resOfferWins.labourMarketIntegration.selectedFactor, 'jobOffer')
+  assert.equal(resOfferWins.labourMarketIntegration.total, 70)
+
+  // Case 3: 2 yr CA work + 2.0x high wage (53 + 70 = 123 pts) vs Job Offer 2.0x (100 pts) -> picks Canadian Work (123 pts)
+  const resWorkWins = calculateCRS({
+    maritalStatus: 'single',
+    age: '25',
+    education: 'bachelor',
+    firstLangReading: '9',
+    firstLangWriting: '9',
+    firstLangSpeaking: '9',
+    firstLangListening: '9',
+    canadianWorkExperience: '2',
+    canadianHighWageExperience: 'wage-2x', // 53 + 70 = 123 pts
+    hasJobOffer: 'yes',
+    jobOfferWageLevel: 'offer-2x' // 100 pts
+  })
+  assert.equal(resWorkWins.labourMarketIntegration.canadianWork.total, 123)
+  assert.equal(resWorkWins.labourMarketIntegration.jobOffer.total, 100)
+  assert.equal(resWorkWins.labourMarketIntegration.selectedFactor, 'canadianWork')
+  assert.equal(resWorkWins.labourMarketIntegration.total, 123)
+})
+
 test('Calculates arranged employment and sibling bonus points', () => {
   const resJob00 = calculateCRS({
     maritalStatus: 'single',
@@ -119,10 +243,11 @@ test('Calculates arranged employment and sibling bonus points', () => {
     firstLangWriting: '7',
     firstLangSpeaking: '7',
     firstLangListening: '7',
-    arrangedEmployment: 'noc-00',
+    hasJobOffer: 'yes',
+    jobOfferWageLevel: 'offer-2x',
     hasSiblingInCanada: 'yes'
   })
-  assert.equal(resJob00.sectionD.arrangedEmployment, 200)
+  assert.equal(resJob00.labourMarketIntegration.jobOffer.total, 100)
   assert.equal(resJob00.sectionD.sibling, 15)
 
   const resJobGeneral = calculateCRS({
@@ -133,10 +258,11 @@ test('Calculates arranged employment and sibling bonus points', () => {
     firstLangWriting: '7',
     firstLangSpeaking: '7',
     firstLangListening: '7',
-    arrangedEmployment: 'noc-0-1-2-3',
+    hasJobOffer: 'yes',
+    jobOfferWageLevel: 'offer-1.3x',
     hasSiblingInCanada: 'no'
   })
-  assert.equal(resJobGeneral.sectionD.arrangedEmployment, 50)
+  assert.equal(resJobGeneral.labourMarketIntegration.jobOffer.total, 50)
   assert.equal(resJobGeneral.sectionD.sibling, 0)
 })
 
